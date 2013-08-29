@@ -3,6 +3,7 @@
 import numpy as np
 
 import matplotlib as mp
+mp.use('PDF')
 mp.rc('text', usetex=True)
 mp.rc('font', family='serif', size=13)
 import matplotlib.pyplot as plt
@@ -15,9 +16,9 @@ from rake import rake_receiver
 import theory
 
 # maximum number of packages after which the simulation stops
-max_packets = 5e5
+max_packets = 1e7
 # maximum number of errors after which the simulation stops
-max_errors = 1e4
+max_errors = 5e4
 # number of symbols per package
 M = 50
 #energy per symbol
@@ -43,13 +44,13 @@ sigma_rayleigh = np.sqrt(2/np.pi)
 
 # compute the theoretical curves for every power delay profile
 for idx_pdp, pdp_el in enumerate(pdps):
-    ber_theo[idx_pdp,:] = np.array([theory.qam_mrc_ber_matlab(bps**2, len(pdp_el['pdp']), x) for x in EbN0])
+    ber_theo[idx_pdp,:] = np.array([theory.qam_mrc_ber(bps**2, len(pdp_el['pdp']), x) for x in EbN0])
 
 # simulation of the rake receivers
 for idx_pdp, pdp_el in enumerate(pdps):
     print "Computing the BER for the following pdp: ", pdp_el['pdp']
     for idx, sigma in enumerate(sigmas):
-        print "sigma=%f : " % (sigma),
+        print "sigma=%f,"% (sigma),
         # number of transmitted packages
         n = 0;
         # a Rayleigh distributed multipath channel with AWGN
@@ -84,6 +85,7 @@ for idx_pdp, pdp_el in enumerate(pdps):
             # if enough bit errors are available for a thourough statistic quit
             # the simulation for this Eb/N0
             if ((tot_bit_errors[idx_pdp, idx] > max_errors) or (n > max_packets)):
+                    print n, "packets were processed:",
                     ber_sim[idx_pdp, idx] = tot_bit_errors[idx_pdp, idx]/(n*M*bps)
                     break
         print "BER=%f" % (ber_sim[idx_pdp, idx])
@@ -99,6 +101,7 @@ pickle.dump(data, outfile)
 outfile.close
 
 # plot the data
+#ax = plt.subplot(111)
 ax = plt.subplot(111)
 for idx_pdp, pdp_el in enumerate(pdps):
     plt.semilogy(10*np.log10(EbN0), ber_sim[idx_pdp,:], pdp_el['plotstyle'],
@@ -107,11 +110,10 @@ for idx_pdp, pdp_el in enumerate(pdps):
             label='MRC: '+pdp_el['legend']+' (theory)')
 
 handles, labels = ax.get_legend_handles_labels()
-ax.legend(handles, labels, bbox_to_anchor=(0.55, 0.45))
+ax.legend(handles, labels, loc=3)
 
 plt.title("16-QAM Rake Receiver")
 plt.ylabel(r'BER')
 plt.xlabel(r'$E_b/N_0$ in dB')
 plt.grid(True)
 plt.savefig("rake_vs_mrc.pdf", bbox_inches='tight', dpi=300)
-plt.show()
