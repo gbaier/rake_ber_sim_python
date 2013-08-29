@@ -27,7 +27,7 @@ def qam_mrc_ber_hsnr(M, L, EbN0):
     P2 = 2*(SM-1)/(SM*np.log2(SM))*np.power((1-mu)/2, L)*tot
     return P2
 
-def qam_mrc_ber_exp(M, L, EbN0):
+def qam_mrc_ber_loglin(M, L, EbN0):
     """ computes the Bit Error Ratio for M-QAM in the case of Rayleigh
         fading, AWGN and MRC with L branches as given in
         "Digital Communications", 2nd Ed., Sklar and Ray, [9.54]
@@ -83,8 +83,8 @@ if __name__ == "__main__":
     ls = ['b', 'r', 'g', 'k']
     ax = plt.subplot(111)
     for idx, n in enumerate(N):
-        bers = np.array([qam_mrc_ber_exp(M, n, x) for x in EbN0])
-        plt.semilogy(10*np.log10(EbN0), bers, '--' + ls[idx], label='approx. exp ' + str(n) + ' paths')
+        bers = np.array([qam_mrc_ber_loglin(M, n, x) for x in EbN0])
+        plt.semilogy(10*np.log10(EbN0), bers, '--' + ls[idx], label='approx. loglin ' + str(n) + ' paths')
 
         bers = np.array([qam_mrc_ber_hsnr(M, n, x) for x in EbN0])
         plt.semilogy(10*np.log10(EbN0), bers, '.' + ls[idx], label='approx. high SNR ' + str(n) + ' paths')
